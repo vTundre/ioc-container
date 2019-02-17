@@ -1,0 +1,11 @@
+<beans>
+    <bean id="mailServiceInstance" class="entity.MailService">
+        <property name="port" value="3000"/>
+        <property name="protocol" value="POP3"/>
+    </bean>
+    <bean id="instanceUserService" class="entity.DefaultUserService">
+        <property name="mailService" ref="mailServiceInstance"/>
+    </bean>
+    <bean id="empty" class="entity.Empty">
+    </bean>
+</beans>
