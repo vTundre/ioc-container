@@ -1,13 +1,14 @@
-package service.impl;
+package reader.impl;
 
 import entity.BeanDefinition;
-import service.BeanDefinitionReader;
+import reader.BeanDefinitionReader;
 
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.util.List;
+import java.util.Map;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
     private String path;
@@ -16,7 +17,7 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
         this.path = path;
     }
 
-    public List<BeanDefinition> getBeanDefinition() {
+    public Map<String, BeanDefinition> getBeanDefinition() {
 
         try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(path))) {
 
@@ -26,7 +27,7 @@ public class XMLBeanDefinitionReader implements BeanDefinitionReader {
             BeanContextHandler handler = new BeanContextHandler();
             saxParser.parse(bufferedInputStream, handler);
 
-            List<BeanDefinition> beanDefinitionList = handler.getBeanDefinitionList();
+            Map<String, BeanDefinition> beanDefinitionList = handler.getBeanDefinitionList();
             return beanDefinitionList;
         } catch (Exception e) {
             throw new RuntimeException(e);

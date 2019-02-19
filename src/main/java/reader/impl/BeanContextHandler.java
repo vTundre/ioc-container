@@ -1,4 +1,4 @@
-package service.impl;
+package reader.impl;
 
 import entity.BeanDefinition;
 import org.xml.sax.Attributes;
@@ -8,10 +8,12 @@ import org.xml.sax.helpers.DefaultHandler;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class BeanContextHandler extends DefaultHandler {
 
-    private LinkedList<BeanDefinition> beanDefinitionsList = new LinkedList<>();
+    private Map<String, BeanDefinition> beanDefinitionsList = new HashMap<>();
+    private BeanDefinition lastBeanDefinition;
 
     @Override
     public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
@@ -28,13 +30,13 @@ public class BeanContextHandler extends DefaultHandler {
             beanDefinition.setClassName(className);
             beanDefinition.setRefDependencies(new HashMap<>());
             beanDefinition.setValueDependencies(new HashMap<>());
-            beanDefinitionsList.add(beanDefinition);
+            beanDefinitionsList.put(id, beanDefinition);
+            lastBeanDefinition = beanDefinitionsList.get(id);
 
         } else if (qName.equalsIgnoreCase("property")) {
             if (attributes.getLength() == 0) {
                 throw new SAXException("Missed property attributes");
             }
-            BeanDefinition lastBeanDefinition = beanDefinitionsList.getLast();
 
             String name = attributes.getValue("name");
             String value = attributes.getValue("value");
@@ -50,7 +52,7 @@ public class BeanContextHandler extends DefaultHandler {
         }
     }
 
-    public List<BeanDefinition> getBeanDefinitionList() {
+    public Map<String, BeanDefinition> getBeanDefinitionList() {
         return beanDefinitionsList;
     }
 }

@@ -1,17 +1,15 @@
-package service;
+package context;
 
+import context.impl.GenericApplicationContext;
 import entity.MailService;
 import org.junit.Assert;
 import org.junit.Test;
-import service.impl.GenericApplicationContext;
-import service.impl.XMLBeanDefinitionReader;
 
 public class ApplicationContextTest {
 
     @Test
     public void testGetBeanById() {
-        BeanDefinitionReader beanDefinitionReader = new XMLBeanDefinitionReader("src/test/resources/context.xml");
-        ApplicationContext applicationContext = new GenericApplicationContext(beanDefinitionReader.getBeanDefinition());
+        GenericApplicationContext applicationContext = new GenericApplicationContext("src/test/resources/context.xml");
 
         MailService mailService = (MailService) applicationContext.getBean("mailServiceInstance");
         Assert.assertEquals(3000, mailService.getPort());
@@ -20,8 +18,7 @@ public class ApplicationContextTest {
 
     @Test
     public void testGetBeanByClass() {
-        BeanDefinitionReader beanDefinitionReader = new XMLBeanDefinitionReader("src/test/resources/context.xml");
-        ApplicationContext applicationContext = new GenericApplicationContext(beanDefinitionReader.getBeanDefinition());
+        GenericApplicationContext applicationContext = new GenericApplicationContext("src/test/resources/context.xml");
 
         MailService mailService = applicationContext.getBean(MailService.class);
         Assert.assertEquals(3000, mailService.getPort());
@@ -31,8 +28,7 @@ public class ApplicationContextTest {
 
     @Test
     public void testGetBeanByIdAndClass() {
-        BeanDefinitionReader beanDefinitionReader = new XMLBeanDefinitionReader("src/test/resources/context.xml");
-        ApplicationContext applicationContext = new GenericApplicationContext(beanDefinitionReader.getBeanDefinition());
+        GenericApplicationContext applicationContext = new GenericApplicationContext("src/test/resources/context.xml");
 
         MailService mailService = applicationContext.getBean("mailServiceInstance", MailService.class);
         Assert.assertEquals(3000, mailService.getPort());

@@ -1,4 +1,4 @@
-package service;
+package context;
 
 public interface ApplicationContext {
     Object getBean(String beanId);
