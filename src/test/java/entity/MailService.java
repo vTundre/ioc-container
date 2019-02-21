@@ -19,4 +19,9 @@ public class MailService {
     public void setProtocol(String protocol) {
         this.protocol = protocol;
     }
+
+    @PostConstruct
+    public void post(){
+        System.out.println("Post construct call");
+    }
 }

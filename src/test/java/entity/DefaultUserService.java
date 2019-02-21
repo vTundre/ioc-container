@@ -1,6 +1,6 @@
 package entity;
 
-public class DefaultUserService {
+public class DefaultUserService  {
    private MailService mailService;
 
    public MailService getMailService() {

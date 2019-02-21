@@ -2,7 +2,8 @@ package entity;
 
 public class Bean {
     String id;
-    Object value;
+    Object object;
+    boolean isSystem;
 
     public String getId() {
         return id;
@@ -12,11 +13,19 @@ public class Bean {
         this.id = id;
     }
 
-    public Object getValue() {
-        return value;
+    public Object getObject() {
+        return object;
     }
 
-    public void setValue(Object value) {
-        this.value = value;
+    public void setObject(Object object) {
+        this.object = object;
+    }
+
+    public boolean isSystem() {
+        return isSystem;
+    }
+
+    public void setSystem(boolean system) {
+        isSystem = system;
     }
 }

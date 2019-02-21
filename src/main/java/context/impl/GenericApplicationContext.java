@@ -3,50 +3,119 @@ package context.impl;
 import context.ApplicationContext;
 import entity.Bean;
 import entity.BeanDefinition;
+import entity.BeanFactoryPostProcessor;
+import entity.BeanPostProcessor;
 import reader.impl.XMLBeanDefinitionReader;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 public class GenericApplicationContext implements ApplicationContext {
-    private String path;
     private Map<String, BeanDefinition> beanDefinitionList;
     private Map<String, Bean> beanList;
 
     public GenericApplicationContext(String path) {
-        this.path = path;
+        beanDefinitionList = new HashMap<>();
         beanList = new HashMap<>();
+
+        //read bean definitions
         beanDefinitionList = new XMLBeanDefinitionReader(path).getBeanDefinition();
+
+        //definitions postprocessing
+        postProcessBeanDefinitions(beanDefinitionList);
+
+        //beans
         createBeans(beanDefinitionList, beanList);
+        postProcessBeans(beanList, "postProcessBeforeInitialization");
+        postConstruct(beanList);
+        postProcessBeans(beanList, "postProcessAfterInitialization");
     }
 
     @Override
     public Object getBean(String beanId) {
-        return beanList.get(beanId).getValue();
+        return beanList.get(beanId).getObject();
     }
 
     @Override
     public <T> T getBean(Class<T> clazz) {
         for (Map.Entry<String, Bean> entry : beanList.entrySet()) {
-            Class currentBeanClazz = entry.getValue().getValue().getClass();
+            Class currentBeanClazz = entry.getValue().getObject().getClass();
             if (currentBeanClazz.equals(clazz)) {
-                return (T) entry.getValue().getValue();
+                return (T) entry.getValue().getObject();
             }
         }
-        throw new RuntimeException("Bean doesn't exists");
+        return null;
     }
 
     @Override
     public <T> T getBean(String beanId, Class<T> clazz) {
         for (Map.Entry<String, Bean> entry : beanList.entrySet()) {
-            Class currentBeanClazz = entry.getValue().getValue().getClass();
+            Class currentBeanClazz = entry.getValue().getObject().getClass();
             if (currentBeanClazz.equals(clazz) && entry.getKey().equals(beanId)) {
-                return (T) entry.getValue().getValue();
+                return (T) entry.getValue().getObject();
             }
         }
-        throw new RuntimeException("Bean doesn't exists");
+        return null;
+    }
+
+    private void postProcessBeanDefinitions(Map<String, BeanDefinition> beanDefinitionList) {
+        for (Map.Entry<String, BeanDefinition> entry : beanDefinitionList.entrySet()) {
+            String className = entry.getValue().getClassName();
+            try {
+                Class<?> clazz = Class.forName(className);
+                if (Arrays.asList(clazz.getInterfaces()).contains(BeanFactoryPostProcessor.class)) {
+                    Method method = clazz.getMethod("postProcessBeanFactory", Map.class);
+                    Constructor<?> constructor = clazz.getConstructor();
+                    Object object = constructor.newInstance();
+                    method.invoke(object, beanDefinitionList);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void postProcessBeans(Map<String, Bean> beanList, String methodName) {
+        for (Map.Entry<String, Bean> systemEntry : beanList.entrySet()) {
+            if (systemEntry.getValue().isSystem()) {
+                Object systemObject = systemEntry.getValue().getObject();
+                try {
+                    Method method = systemObject.getClass().getMethod(methodName, Object.class);
+
+                    for (Map.Entry<String, Bean> entry : beanList.entrySet()) {
+                        if (!entry.getValue().isSystem()) {
+                            Object object = entry.getValue().getObject();
+                            Object modifiedObject = method.invoke(systemObject, object);
+
+                            Bean bean = entry.getValue();
+                            bean.setObject(modifiedObject);
+                            beanList.put(entry.getKey(), bean);
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void postConstruct(Map<String, Bean> beanList) {
+        for (Map.Entry<String, Bean> entry : beanList.entrySet()) {
+            Object object = entry.getValue().getObject();
+            Method[] methods = object.getClass().getMethods();
+            for (Method method : methods) {
+                if (method.getParameterCount() == 0 && method.isAnnotationPresent(entity.PostConstruct.class)) {
+                    try {
+                        method.invoke(object);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     private void createBeans(Map<String, BeanDefinition> beanDefinitionList, Map<String, Bean> beanList) {
@@ -61,7 +130,9 @@ public class GenericApplicationContext implements ApplicationContext {
 
                 Bean bean = new Bean();
                 bean.setId(beanDefinition.getId());
-                bean.setValue(object);
+                bean.setObject(object);
+                bean.setSystem(Arrays.asList(object.getClass().getInterfaces()).contains(BeanPostProcessor.class));
+
                 beanList.put(beanDefinition.getId(), bean);
             } catch (Exception e) {
                 throw new RuntimeException(e);

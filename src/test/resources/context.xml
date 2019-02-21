@@ -6,6 +6,8 @@
     <bean id="instanceUserService" class="entity.DefaultUserService">
         <property name="mailService" ref="mailServiceInstance"/>
     </bean>
-    <bean id="empty" class="entity.Empty">
-    </bean>
+    <bean id="empty" class="entity.Empty"/>
+    <bean id="implBeanFactoryPostProcessor" class="entity.ImplBeanFactoryPostProcessor"/>
+    <bean id="implPostProcessor1" class="entity.ImplPostProcessor1"/>
+    <bean id="implPostProcessor2" class="entity.ImplPostProcessor2"/>
 </beans>

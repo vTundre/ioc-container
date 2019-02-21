@@ -7,7 +7,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
-import java.util.List;
 import java.util.Map;
 
 public class XMLBeanDefinitionReader implements BeanDefinitionReader {
